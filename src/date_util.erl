@@ -3,15 +3,15 @@
 
 -export([ next_day/1
         , prev_day/1
-        , next_non_weekend/1
+        , next_day_non_weekend/1
         , gaussian_between/2
+        , uniform_between/2
         ]).
 
+next_day(Date) -> day_loop(Date, fun day_inc/1).
+prev_day(Date) -> day_loop(Date, fun day_dec/1).
 
-next_day(Date) -> loop(Date, +1).
-prev_day(Date) -> loop(Date, -1).
-
-next_non_weekend(Date0) ->
+next_day_non_weekend(Date0) ->
   {{Y,M,D}, _} = Date = next_day(Date0),
   case calendar:day_of_the_week(Y,M,D) of
     6 -> next_day(next_day(Date));
@@ -19,26 +19,30 @@ next_non_weekend(Date0) ->
     _ -> Date
   end.
 
-gaussian_between(D0, D1) ->
-  G0    = calendar:datetime_to_gregorian_seconds(D0),
-  G1    = calendar:datetime_to_gregorian_seconds(D1),
-  GSecs = round((G1-G0) * gaussian:zero_to_one()),
-  calendar:gregorian_seconds_to_datetime(G0 + GSecs).
+gaussian_between(D0, D1) -> between(D0, D1, fun gaussian:zero_to_one/0).
+uniform_between(D0, D1)  -> between(D0, D1, fun random:uniform/0).
 
 %%%_ * Internals -------------------------------------------------------
-loop({Ymd0,Hms}, N) ->
-  Ymd = next(Ymd0, N),
+day_loop({Ymd0,Hms}, F) ->
+  Ymd = F(Ymd0),
   case calendar:valid_date(Ymd) of
     true  -> {Ymd,Hms};
-    false -> loop({Ymd,Hms},N)
+    false -> day_loop({Ymd,Hms}, F)
   end.
 
-next({Y,M,0} , _N) -> {Y,M-1,31};
-next({Y,M,32}, _N) -> {Y,M+1,1};
-next({Y,0,_},  _N) -> {Y-1,12,31};
-next({Y,13,_}, _N) -> {Y+1,1,1};
-next({Y,M,D},   N) -> {Y,M,D+N}.
+day_inc({Y, M,  31}) -> {Y,   M+1, 1  };
+day_inc({Y, 13, _ }) -> {Y+1, 1,   1  };
+day_inc({Y, M,  D }) -> {Y,   M,   D+1}.
 
+day_dec({Y, M,  1 }) -> {Y,   M-1, 31 };
+day_dec({Y, 0,  _ }) -> {Y-1, 12,  31 };
+day_dec({Y, M,  D }) -> {Y,   M,   D-1}.
+
+between(D0, D1, F) ->
+  G0    = calendar:datetime_to_gregorian_seconds(D0),
+  G1    = calendar:datetime_to_gregorian_seconds(D1),
+  GSecs = round((G1-G0) * F()),
+  calendar:gregorian_seconds_to_datetime(G0 + GSecs).
 
 %%%_* Tests ============================================================
 -ifdef(TEST).
@@ -71,7 +75,7 @@ gaussian_between_test() ->
   true.
 
 next_non_weekend_test() ->
-  next_non_weekend(calendar:local_time()),
+  next_day_non_weekend(calendar:local_time()),
   true.
 
 -else.
@@ -82,4 +86,3 @@ next_non_weekend_test() ->
 %%% allout-layout: t
 %%% erlang-indent-level: 2
 %%% End:
-
