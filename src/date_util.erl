@@ -49,21 +49,36 @@ between(D0, D1, F) ->
 -include_lib("eunit/include/eunit.hrl").
 
 
-next_prev_test() ->
+next_prev_non_weekend_test() ->
   ToGSecs = fun calendar:datetime_to_gregorian_seconds/1,
   Now     = calendar:local_time(),
   End     = lists:foldl(
-              fun(_, {Yesterday0,Tomorrow0}) ->
+              fun(_, {Yesterday0,Tomorrow0,Weekend0}) ->
+                  %% prev day
                   Yesterday = prev_day(Yesterday0),
-                  Tomorrow  = next_day(Tomorrow0),
                   Diff0 = ToGSecs(Yesterday0) - ToGSecs(Yesterday),
+                  true = Diff0 > 86400 - 10,
+                  true = Diff0 < 86400 + 10,
+
+                  %% tomorrow
+                  Tomorrow  = next_day(Tomorrow0),
                   Diff1 = ToGSecs(Tomorrow)  - ToGSecs(Tomorrow0),
-                  true = Diff0 >= 86400 - 10,
-                  true = Diff0 =< 86400 + 10,
-                  true = Diff1 >= 86400 - 10,
-                  true = Diff1 =< 86400 + 10,
-                  {Yesterday, Tomorrow}
-              end, {Now,Now}, lists:seq(1, 1000)),
+                  true = Diff1 > 86400 - 10,
+                  true = Diff1 < 86400 + 10,
+
+                  %% weekend
+                  {{Y0,M0,D0}, _} = Weekend0,
+                  {{Y,M,D},_}  = Weekend = next_day_non_weekend(Weekend0),
+                  Diff3 = ToGSecs(Weekend) - ToGSecs(Weekend0),
+                  true = calendar:day_of_the_week({Y,M,D}) =< 5,
+                  case calendar:day_of_the_week(Y0,M0,D0) of
+                    5 -> true = Diff3 > 86400*3 - 10,
+                         true = Diff3 < 86400*3 + 10;
+                    _ -> true = Diff3 > 86400 - 10,
+                         true = Diff3 < 86400 + 10
+                  end,
+                  {Yesterday, Tomorrow, Weekend}
+              end, {Now,Now,Now}, lists:seq(1, 1000)),
   io:format("End: ~p~n", [End]),
   true.
 
