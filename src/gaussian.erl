@@ -9,7 +9,7 @@
 -module(gaussian).
 
 %%%_* Exports ==========================================================
--export([basic/0, box_muller/0, zero_to_one/0, test/0]).
+-export([basic/0, box_muller/0, zero_to_one/0]).
 
 %%%_* Code =============================================================
 %% Result is two new independent random numbers which have a
@@ -50,12 +50,31 @@ until(F1, F2) ->
     false -> until(F1,F2)
   end.
 
-test() ->
-  L0 = [box_muller() || _ <- lists:seq(1, 10000)],
+%%%_* Tests ============================================================
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+%% yes these are silly..
+basic_test() ->
+  {_, _} = basic(),
+  true.
+
+box_muller_test() ->
+  L0 = [box_muller() || _ <- lists:seq(1, 100)],
   L1 = lists:filter(fun({X1, _X2}) ->
                         X1 =< 1.0 andalso X1 >= -1.0
                     end, L0),
-  L1.
+  L1,
+  true.
+
+zero_to_one_test() ->
+  true = zero_to_one() >= 0,
+  true = zero_to_one() =< 1,
+  true.
+
+-else.
+-endif.
+
 
 %%%_* Emacs ============================================================
 %%% Local Variables:

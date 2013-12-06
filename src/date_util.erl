@@ -44,6 +44,7 @@ next({Y,M,D},   N) -> {Y,M,D+N}.
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
+
 next_prev_test() ->
   ToGSecs = fun calendar:datetime_to_gregorian_seconds/1,
   Now     = calendar:local_time(),
@@ -60,6 +61,17 @@ next_prev_test() ->
                   {Yesterday, Tomorrow}
               end, {Now,Now}, lists:seq(1, 1000)),
   io:format("End: ~p~n", [End]),
+  true.
+
+%% TODO: Fix these and make them actually check return values
+gaussian_between_test() ->
+  Now      = calendar:local_time(),
+  Tomorrow = next_day(Now),
+  gaussian_between(Now, Tomorrow),
+  true.
+
+next_non_weekend_test() ->
+  next_non_weekend(calendar:local_time()),
   true.
 
 -else.
