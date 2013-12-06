@@ -38,7 +38,7 @@ box_muller() ->
 
 zero_to_one() ->
   %% drops 0.3%
-  {Y1, _} = until(fun({Y, _}) -> Y >= -2.0 andalso Y =< 2.0 end,
+  {Y1, _} = until(fun({Y, _}) -> Y >= -3.0 andalso Y =< 3.0 end,
                   fun box_muller/0),
   (Y1 + 3) / 6.
 
