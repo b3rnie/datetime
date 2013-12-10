@@ -1,5 +1,5 @@
 %%%_* Module declaration ===============================================
--module(date_util).
+-module(datetime).
 
 -export([ next_day/1
         , prev_day/1
