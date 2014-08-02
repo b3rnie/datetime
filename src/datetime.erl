@@ -91,6 +91,8 @@ next_prev_non_weekend_test() ->
                   case calendar:day_of_the_week(Y0,M0,D0) of
                     5 -> true = Diff3 > ?s_day*3,
                          true = Diff3 < ?l_day*3;
+                    6 -> true = Diff3 > ?s_day*2,
+                         true = Diff3 < ?l_day*2;
                     _ -> true = Diff3 > ?s_day,
                          true = Diff3 < ?l_day
                   end,
